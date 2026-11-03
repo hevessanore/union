@@ -1,0 +1,250 @@
+/* Контейнер каталога — центрируем и ограничиваем ширину */
+.catalog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Заголовок каталога */
+.catalog-title {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.catalog-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0 0 40px 0;
+}
+
+/* Сетка товаров */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+/* Ссылка-обёртка карточки */
+.product-card-link {
+  display: block;
+}
+
+/* Карточка товара */
+.product-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  padding: 18px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* Блок-заглушка под картинку — фиксированная высота */
+.prod-img-placeholder {
+  width: 100%;
+  height: 160px;
+  background-color: #f5f7fa;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ГЛАВНОЕ: стили для картинки внутри заглушки */
+.prod-img-placeholder img {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Название товара */
+.product-name {
+  color: #222;
+  font-size: 1rem;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+/* Описание товара */
+.product-desc {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0 0 16px 0;
+  flex-grow: 1;
+  line-height: 1.5;
+}
+
+/* Кнопка/подсказка «Подробнее» */
+.product-action {
+  color: #007bff;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 6px 12px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.product-card:hover .product-action {
+  background: #007bff;
+  color: #fff;
+}
+
+/* Страница паспорта товара */
+.product-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* 
+   УДАЛЕНО: .product-page a.back-link 
+   Мы больше не используем back-link, только back-btn из base.html 
+*/
+
+.product-page h1 {
+  color: #1a1a1a;
+  font-size: 2.2rem;
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+}
+
+.product-page .product-meta {
+  color: #666;
+  font-size: 1rem;
+  margin: 0 0 30px 0;
+}
+
+/* Блок с фото на странице товара */
+.product-image-wrapper {
+  width: 100%;
+  max-width: 500px;
+  height: 360px;
+  background-color: #f5f7fa;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.product-image-wrapper img {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.product-description h3 {
+  color: #222;
+  font-size: 1.4rem;
+  margin: 0 0 16px 0;
+}
+
+.product-description p {
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Кнопка «В корзину» */
+.add-to-cart-btn {
+  padding: 14px 28px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #0056b3;
+}
+
+.add-to-cart-btn:active {
+  transform: scale(0.98);
+}
+
+/* --- СТИЛИ ДЛЯ УНИВЕРСАЛЬНОЙ КНОПКИ (НА ГЛАВНУЮ) --- */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background-color: #fff;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    margin-bottom: 24px;
+}
+
+.back-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.back-btn-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.order-form {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.submit-btn {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}

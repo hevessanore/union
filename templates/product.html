@@ -1,0 +1,53 @@
+<!-- templates/product_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} — ООО Юнион{% endblock %}
+
+{% block content %}
+  <div class="product-page">
+    <h1>{{ product.name }}</h1>
+    <div class="product-meta">Артикул: {{ product.id }}</div>
+
+    <div class="product-image-wrapper">
+      {% if product.img_full %}
+        <img src="{{ url_for('static', filename='img/' + product.img_full) }}" alt="{{ product.name }}" style="max-width:100%;">
+      {% else %}
+        <div style="width:100%; min-height:400px; display:flex; align-items:center; justify-content:center; color:#999; border:2px dashed #ccc; padding:40px;">Фото отсутствует</div>
+      {% endif %}
+    </div>
+
+    <p class="product-desc-short">{{ product.desc_short }}</p>
+
+    {% if product.features %}
+      <div class="product-features">
+        <h3>Характеристики</h3>
+        <ul>
+          {% for feature in product.features %}
+            <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if product.description %}
+      <div class="product-description">
+        <h3>Описание</h3>
+        <p>{{ product.description }}</p>
+      </div>
+    {% endif %}
+
+    <br>
+    <!-- Форма с кнопкой «В корзину» -->
+    <form action="/snow_guard/add-to-cart" method="POST">
+      <input type="hidden" name="product_id" value="{{ product.id }}">
+      <input type="hidden" name="name" value="{{ product.name }}">
+      <input type="hidden" name="price" value="{{ product.price }}">
+
+      <div style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <label style="font-size:0.95rem; margin-right:8px;">Кол-во:</label>
+        <input type="number" name="quantity" value="1" min="1" style="width:60px; padding:8px; text-align:center; margin-bottom:8px;">
+        <button type="submit" class="add-to-cart-btn" style="padding:10px 20px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">В корзину</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

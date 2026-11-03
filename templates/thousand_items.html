@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="catalog-container">
+    <h1 class="catalog-title">1000 мелочей для кровли</h1>
+    <p class="catalog-subtitle">Крепёж, планки, уплотнители, доборные элементы и аксессуары для кровельных работ</p>
+
+    <div class="products-grid">
+      {% for product in products %}
+        <div class="product-card">
+          <!-- Ссылка на страницу товара — теперь без /catalog/ -->
+          <a href="/product/{{ product.id }}" class="product-card-link" style="text-decoration: none; color: inherit;">
+            <div class="prod-img-placeholder">
+              {% if product.img_thumb %}
+                <img src="{{ url_for('static', filename='img/' + product.img_thumb) }}" alt="{{ product.name }}" style="width:100%; height:auto; display:block;">
+              {% else %}
+                <div style="width:100%; height:160px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#999;">Нет фото</div>
+              {% endif %}
+            </div>
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-desc">{{ product.desc_short }}</p>
+          </a>
+
+          <form action="/snow_guard/add-to-cart" method="POST" style="margin-top:12px;">
+            <input type="hidden" name="name" value="{{ product.name }}">
+            <label style="font-size:0.85rem; margin-right:6px;">Кол-во:</label>
+            <input type="number" name="quantity" value="1" min="1" 
+                   style="width:50px; padding:6px; text-align:center; border:1px solid #ccc; border-radius:4px; margin-right:8px;">
+            <button type="submit" class="add-to-cart-btn"
+                    style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.9rem;">
+              В корзину
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <p style="text-align:center; margin-top:40px;">
+    <a href="/snow_guard/cart" style="display:inline-block; padding:10px 20px; background:#28a745; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold;">
+      🛒 Перейти в корзину
+    </a>
+  </p>
+{% endblock %}

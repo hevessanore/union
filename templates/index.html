@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="panel-full">
+        <img src="{{ url_for('static', filename='img/panel1.png') }}" class="full-screen" alt="Цех">
+        <a href="/snow_guard" class="zone-btn" style="left: 3%; top: 45%; width: 22%; height: 8%;"></a>
+        <a href="/fence" class="zone-btn" style="left: 3%; top: 71%; width: 28%; height: 8%;"></a>
+        <a href="/thousand-items" class="zone-btn" style="left: 44%; top: 72%; width: 32%; height: 11%;"></a>
+       
+    </div>
+
+    <div class="container">
+        <section id="about">
+            <h2>О компании ООО «Юнион»</h2>
+            <p>Мы — производственное предприятие полного цикла в г. Ливны.</p>
+            <p><strong>ИНН:</strong> 570 201 27 29 | <strong>Адрес:</strong> Орловская обл., г. Ливны, пер. Железнодорожный 10-А/4</p>
+            <p><strong>Телефон:</strong> 8 (919) 266 40-50</p>
+        </section>
+        <section id="services">
+            <h2>Наши услуги</h2>
+            <div class="services-grid">
+                <div class="service-card"><h3>Лазерная резка и сварка</h3><p>Художественная и производственная резка металла.</p></div>
+                <div class="service-card"><h3>Порошковая окраска</h3><p>Надежное полимерное покрытие изделий.</p></div>
+                <div class="service-card"><h3>Гибка металла</h3><p>Гибка листового металла и изготовление изделий.</p></div>
+            </div>
+        </section>
+        <section id="production">
+            <h2>Производство</h2>
+            <ul>
+                <li>Участок ЧПУ и лазерной резки</li>
+                <li>Сварочный участок</li>
+                <li>Участок порошковой окраски</li>
+                <li>Сборочный участок</li>
+            </ul>
+        </section>
+        <section id="contacts">
+            <h2>Контакты</h2>
+            <p>Готовы реализовать вашу продукцию под ключ.</p>
+        </section>
+    </div>
+{% endblock %}

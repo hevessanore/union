@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Корзина — ООО Юнион{% endblock %}
+
+{% block content %}
+  <h2>Корзина и оформление заявки</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div style="padding:12px; margin-bottom:16px; border-radius:6px; color:#fff; font-weight:bold; text-align:center;">
+          {% if category == 'success' %}
+            <div style="background:#28a745; border:1px solid #1e7e34;">✓ {{ message }}</div>
+          {% else %}
+            <div style="background:#dc3545; border:1px solid #c82333;">⚠ {{ message }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if cart and cart|length > 0 %}
+    <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="padding:12px; text-align:left; border:1px solid #ddd;">Товар</th>
+          <th style="padding:12px; text-align:right; border:1px solid #ddd;">Количество</th>
+          <th style="padding:12px; text-align:center; border:1px solid #ddd;">Действие</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cart %}
+          <tr>
+            <td style="padding:12px; border:1px solid #ddd;">{{ item.name }}</td>
+            <td style="padding:12px; text-align:right; border:1px solid #ddd;">{{ item.quantity }} шт.</td>
+            <td style="padding:12px; text-align:center; border:1px solid #ddd;">
+              <!-- Кнопка УДАЛИТЬ ОДИН ТОВАР -->
+              <form action="/snow_guard/remove-item" method="POST" style="display:inline;">
+                <input type="hidden" name="index" value="{{ loop.index0 }}">
+                <button type="submit"
+                        style="padding:6px 12px; background:#dc3545; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.9rem;">
+                  Удалить
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p style="margin:20px 0; font-style:italic; color:#555;">
+      Цена уточняется по телефону.
+    </p>
+
+    <!-- Форма заявки -->
+    <form method="POST">
+      <div style="max-width:500px; margin:20px auto; display:flex; flex-direction:column; gap:12px;">
+        <label style="font-weight:bold;">E-mail:</label>
+        <input type="email" name="email" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+
+        <label style="font-weight:bold;">Телефон:</label>
+        <input type="tel" name="phone" required style="padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="+7...">
+
+        <button type="submit" style="padding:12px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:1.1rem;">Отправить заявку (мы перезвоним)</button>
+      </div>
+    </form>
+
+    <!-- Кнопка ОЧИСТИТЬ КОРЗИНУ (всё сразу) -->
+    <div style="text-align:center; margin-top:30px;">
+      <form action="/snow_guard/clear-cart" method="POST" style="display:inline;">
+        <button type="submit"
+                style="padding:10px 24px; background:#6c757d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
+          Очистить корзину
+        </button>
+      </form>
+    </div>
+  {% else %}
+    <p style="text-align:center; margin-top:40px; color:#666;">Корзина пуста. Добавьте товары к заказу.</p>
+    <p style="text-align:center;">
+      <a href="/snow_guard" style="color:#007bff;">Снегозадержатели</a> | 
+      <a href="/fence" style="color:#007bff;">Ограждения</a>
+    </p>
+  {% endif %}
+{% endblock %}
