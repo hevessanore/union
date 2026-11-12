@@ -160,7 +160,15 @@ ul li {
     border-radius: 4px;
 }
 
-.zone-btn:nth-child(2) {
-    width: 32%; /* было 22% — увеличиваем ширину */
-    left: 1%;  /* чуть сдвигаем влево, чтобы центр остался над зоной */
+/* Удлинение двух верхних кнопок на ПК */
+@media (min-width: 769px) {
+    .panel-full a.zone-btn:nth-child(2) {  /* «Снегозадержание» */
+        left: 2%;
+        width: 30%;
+    }
+
+    .panel-full a.zone-btn:nth-child(3) {  /* «Ограждения» */
+        left: 2%;
+        width: 36%;
+    }
 }
