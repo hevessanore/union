@@ -24,19 +24,24 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     overflow: hidden;
-    background: linear-gradient(
-        to right,
-        #1a1a1a 0%,
-        #1a1a1a 15%,
-        #ff6b00 15%,
-        #ff6b00 18%,
-        #1a1a1a 18%,
-        #1a1a1a 82%,
-        #ff6b00 82%,
-        #ff6b00 85%,
-        #1a1a1a 85%,
-        #1a1a1a 100%
+    background-color: #14161a;
+}
+
+/* тонкая «станочная» лента по нижнему краю баннера */
+.panel-full::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 10px;
+    background: repeating-linear-gradient(
+        -45deg,
+        #ff7a1a 0 14px,
+        #14161a 14px 28px
     );
+    opacity: 0.6;
+    z-index: 20;
 }
 
 .full-screen {
@@ -156,6 +161,6 @@ ul li {
 }
 
 .zone-btn:nth-child(2) {
-    width: 26%; /* было 22% — увеличиваем ширину */
+    width: 32%; /* было 22% — увеличиваем ширину */
     left: 1%;  /* чуть сдвигаем влево, чтобы центр остался над зоной */
 }
