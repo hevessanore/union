@@ -161,14 +161,23 @@ ul li {
 }
 
 /* Удлинение двух верхних кнопок на ПК */
-@media (min-width: 769px) {
+@media (min-width: 780px) {
     .panel-full a.zone-btn:nth-child(2) {  /* «Снегозадержание» */
         left: 2%;
-        width: 30%;
+        width: 46%;
     }
 
     .panel-full a.zone-btn:nth-child(3) {  /* «Ограждения» */
         left: 2%;
         width: 36%;
+    }
+}
+
+/* Мобильные кнопки — на всю ширину с минимальным порогом */
+@media (max-width: 768px) {
+    .panel-full a.zone-btn {
+        width: 100% !important;
+        min-width: 280px;
+        display: block;
     }
 }
