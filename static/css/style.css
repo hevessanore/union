@@ -17,13 +17,34 @@ body {
 /* ============================================
    ШАПКА-БАННЕР С КНОПКАМИ-ЗОНАМИ
    ============================================ */
+
 .panel-full {
     position: relative;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     overflow: hidden;
-    background-color: #000;
+    background: linear-gradient(
+        to right,
+        #1a1a1a 0%,
+        #1a1a1a 15%,
+        #ff6b00 15%,
+        #ff6b00 18%,
+        #1a1a1a 18%,
+        #1a1a1a 82%,
+        #ff6b00 82%,
+        #ff6b00 85%,
+        #1a1a1a 85%,
+        #1a1a1a 100%
+    );
+}
+
+.full-screen {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    opacity: 0.92; /* лёгкая коррекция цветкора под фон */
 }
 
 .full-screen {
@@ -132,4 +153,9 @@ ul li {
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 4px;
+}
+
+.zone-btn:nth-child(2) {
+    width: 26%; /* было 22% — увеличиваем ширину */
+    left: 1%;  /* чуть сдвигаем влево, чтобы центр остался над зоной */
 }
