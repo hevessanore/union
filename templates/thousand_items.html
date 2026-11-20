@@ -1,6 +1,124 @@
 {% extends "base.html" %}
 
+{% block title %}1000 мелочей для кровли — ООО Юнион{% endblock %}
+
 {% block content %}
+<style>
+    .catalog-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .catalog-title { text-align: center; color: #2c3e50; }
+    .catalog-subtitle { text-align: center; color: #7f8c8d; margin-bottom: 35px; }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 30px;
+    }
+
+    .product-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: cardIn 0.5s ease backwards;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .product-card:nth-child(1) { animation-delay: 0.05s; }
+    .product-card:nth-child(2) { animation-delay: 0.10s; }
+    .product-card:nth-child(3) { animation-delay: 0.15s; }
+    .product-card:nth-child(4) { animation-delay: 0.20s; }
+    .product-card:nth-child(5) { animation-delay: 0.25s; }
+    .product-card:nth-child(6) { animation-delay: 0.30s; }
+    .product-card:nth-child(7) { animation-delay: 0.35s; }
+    .product-card:nth-child(8) { animation-delay: 0.40s; }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .prod-img-placeholder {
+        width: 100%;
+        height: 180px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f7f7f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        margin-bottom: 14px;
+    }
+    .prod-img-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #fff;
+        padding: 8px;
+        box-sizing: border-box;
+        transition: transform 0.5s ease;
+    }
+    .product-card:hover .prod-img-placeholder img { transform: scale(1.05); }
+
+    .product-name { font-size: 1.15rem; color: #2c3e50; margin: 0 0 6px 0; }
+    .product-desc { font-size: 0.9rem; color: #7f8c8d; margin: 0 0 15px 0; flex-grow: 1; }
+
+    .quantity-field {
+        width: 55px;
+        padding: 8px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+    .add-to-cart-btn {
+        padding: 9px 18px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+    }
+    .add-to-cart-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(231, 76, 60, 0.4);
+    }
+    .add-to-cart-btn:active { transform: scale(0.96); }
+    .add-to-cart-btn:disabled { opacity: 0.6; cursor: wait; }
+
+    .to-cart-row { text-align: center; margin-top: 40px; }
+    .to-cart-link {
+        display: inline-block;
+        padding: 14px 32px;
+        background: #e67e22;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: bold;
+        box-shadow: 0 6px 16px rgba(230, 126, 34, 0.35);
+        transition: all 0.25s ease;
+    }
+    .to-cart-link:hover {
+        background: #d35400;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(211, 84, 0, 0.4);
+    }
+</style>
+
   <div class="catalog-container">
     <h1 class="catalog-title">1000 мелочей для кровли</h1>
     <p class="catalog-subtitle">Крепёж, планки, уплотнители, доборные элементы и аксессуары для кровельных работ</p>
@@ -8,37 +126,32 @@
     <div class="products-grid">
       {% for product in products %}
         <div class="product-card">
-          <!-- Ссылка на страницу товара — теперь без /catalog/ -->
           <a href="/product/{{ product.id }}" class="product-card-link" style="text-decoration: none; color: inherit;">
             <div class="prod-img-placeholder">
               {% if product.img_thumb %}
-                <img src="{{ url_for('static', filename='img/' + product.img_thumb) }}" alt="{{ product.name }}" style="width:100%; height:auto; display:block;">
+                <img src="{{ url_for('static', filename='img/' + product.img_thumb) }}" alt="{{ product.name }}">
               {% else %}
-                <div style="width:100%; height:160px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#999;">Нет фото</div>
+                <span>Нет фото</span>
               {% endif %}
             </div>
             <h3 class="product-name">{{ product.name }}</h3>
             <p class="product-desc">{{ product.desc_short }}</p>
           </a>
 
-          <form action="/snow_guard/add-to-cart" method="POST" style="margin-top:12px;">
+          <form action="/snow_guard/add-to-cart" method="POST" class="js-cart-form" style="display:flex; align-items:center; gap:8px;">
             <input type="hidden" name="name" value="{{ product.name }}">
-            <label style="font-size:0.85rem; margin-right:6px;">Кол-во:</label>
-            <input type="number" name="quantity" value="1" min="1" 
-                   style="width:50px; padding:6px; text-align:center; border:1px solid #ccc; border-radius:4px; margin-right:8px;">
-            <button type="submit" class="add-to-cart-btn"
-                    style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.9rem;">
-              В корзину
-            </button>
+            <input type="hidden" name="price" value="{{ product.price or '' }}">
+            <input type="hidden" name="image" value="{{ product.img_thumb or '' }}">
+            <label style="font-size:0.85rem; white-space:nowrap;">Кол-во:</label>
+            <input type="number" name="quantity" value="1" min="1" class="quantity-field">
+            <button type="submit" class="add-to-cart-btn" style="margin-left:auto;">В корзину</button>
           </form>
         </div>
       {% endfor %}
     </div>
-  </div>
 
-  <p style="text-align:center; margin-top:40px;">
-    <a href="/snow_guard/cart" style="display:inline-block; padding:10px 20px; background:#28a745; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold;">
-      🛒 Перейти в корзину
-    </a>
-  </p>
+    <div class="to-cart-row">
+      <a href="/snow_guard/cart" class="to-cart-link">🛒 Перейти в корзину</a>
+    </div>
+  </div>
 {% endblock %}

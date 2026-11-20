@@ -4,15 +4,81 @@
 {% block title %}{{ product.name }} — ООО Юнион{% endblock %}
 
 {% block content %}
+<style>
+    .product-page { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .product-page h1 { color: #2c3e50; margin-bottom: 6px; }
+    .product-meta { color: #95a5a6; font-size: 0.95rem; margin-bottom: 25px; }
+
+    .product-image-wrapper {
+        background: #f7f7f7;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+    }
+    .product-image-wrapper img {
+        max-width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .product-desc-short { color: #555; font-size: 1.05rem; line-height: 1.6; }
+    .product-features, .product-description {
+        background: #fff; border-radius: 12px; padding: 20px 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-top: 20px;
+    }
+    .product-features h3, .product-description h3 { color: #2c3e50; margin-top: 0; }
+    .product-features ul { margin: 0; padding-left: 20px; color: #555; line-height: 1.7; }
+
+    .buy-form {
+        background: #fff; border-radius: 12px; padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 30px;
+        display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .buy-form label { font-size: 1rem; color: #555; white-space: nowrap; }
+    .buy-form .quantity-field {
+        width: 70px; padding: 10px; text-align: center;
+        border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;
+    }
+    .add-to-cart-btn {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: #fff; border: none; border-radius: 50px;
+        cursor: pointer; font-weight: bold; font-size: 1rem; font-family: inherit;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+    }
+    .add-to-cart-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(231, 76, 60, 0.4);
+    }
+    .add-to-cart-btn:active { transform: scale(0.96); }
+    .add-to-cart-btn:disabled { opacity: 0.6; cursor: wait; }
+
+    .to-cart-row { text-align: center; margin-top: 25px; }
+    .to-cart-link {
+        display: inline-block; padding: 12px 28px; background: #e67e22;
+        color: #fff; text-decoration: none; border-radius: 50px; font-weight: bold;
+        transition: all 0.25s ease;
+    }
+    .to-cart-link:hover { background: #d35400; transform: translateY(-2px); }
+</style>
+
   <div class="product-page">
     <h1>{{ product.name }}</h1>
     <div class="product-meta">Артикул: {{ product.id }}</div>
 
     <div class="product-image-wrapper">
       {% if product.img_full %}
-        <img src="{{ url_for('static', filename='img/' + product.img_full) }}" alt="{{ product.name }}" style="max-width:100%;">
+        <img src="{{ url_for('static', filename='img/' + product.img_full) }}" alt="{{ product.name }}">
+      {% elif product.img_thumb %}
+        <img src="{{ url_for('static', filename='img/' + product.img_thumb) }}" alt="{{ product.name }}">
       {% else %}
-        <div style="width:100%; min-height:400px; display:flex; align-items:center; justify-content:center; color:#999; border:2px dashed #ccc; padding:40px;">Фото отсутствует</div>
+        <span style="color:#999;">Фото отсутствует</span>
       {% endif %}
     </div>
 
@@ -36,18 +102,23 @@
       </div>
     {% endif %}
 
-    <br>
-    <!-- Форма с кнопкой «В корзину» -->
-    <form action="/snow_guard/add-to-cart" method="POST">
+    <!-- Форма «В корзину»: передаём картинку и цену -->
+    <form action="/snow_guard/add-to-cart" method="POST" class="buy-form js-cart-form">
       <input type="hidden" name="product_id" value="{{ product.id }}">
+      <input type="hidden" name="price" value="{{ product.price or '' }}">
       <input type="hidden" name="name" value="{{ product.name }}">
+      <input type="hidden" name="image" value="{{ product.img_full or product.img_thumb or '' }}">
+      {% if product.price %}
       <input type="hidden" name="price" value="{{ product.price }}">
+      {% endif %}
 
-      <div style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-        <label style="font-size:0.95rem; margin-right:8px;">Кол-во:</label>
-        <input type="number" name="quantity" value="1" min="1" style="width:60px; padding:8px; text-align:center; margin-bottom:8px;">
-        <button type="submit" class="add-to-cart-btn" style="padding:10px 20px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">В корзину</button>
-      </div>
+      <label for="quantity">Кол-во:</label>
+      <input type="number" id="quantity" name="quantity" value="1" min="1" class="quantity-field">
+      <button type="submit" class="add-to-cart-btn">В корзину</button>
     </form>
+
+    <div class="to-cart-row">
+      <a href="/snow_guard/cart" class="to-cart-link">🛒 Перейти в корзину</a>
+    </div>
   </div>
 {% endblock %}

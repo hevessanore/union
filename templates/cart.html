@@ -1,84 +1,168 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина — ООО Юнион</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f7fa; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
 
-{% block title %}Корзина — ООО Юнион{% endblock %}
+        h1 { color: #2c3e50; margin-top: 0; margin-bottom: 8px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 30px; }
 
-{% block content %}
-  <h2>Корзина и оформление заявки</h2>
+        .cart-list { display: flex; flex-direction: column; gap: 16px; }
+        .cart-item {
+            background: #fff; border-radius: 12px; padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06); display: grid;
+            grid-template-columns: 80px 1fr auto auto; align-items: center;
+            gap: 16px;
+        }
+        .cart-item-image {
+            width: 80px; height: 80px;
+            object-fit: contain;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+        .cart-item-info h3 { margin: 0 0 4px 0; color: #2c3e50; font-size: 1rem; }
+        .cart-item-info .code { color: #95a5a6; font-size: 0.85rem; }
+        .cart-item-price {
+            text-align: right; color: #e74c3c; font-weight: 700; font-size: 1.1rem;
+            white-space: nowrap;
+        }
+        .cart-item-price .price-note { font-style: italic; color: #7f8c8d; font-weight: 400; font-size: 0.9rem; }
+        .cart-item-remove {
+            background: #e74c3c; color: #fff; border: none; padding: 8px 14px;
+            border-radius: 8px; font-size: 0.85rem; cursor: pointer; font-family: inherit;
+            transition: background 0.2s ease;
+        }
+        .cart-item-remove:hover { background: #c0392b; }
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div style="padding:12px; margin-bottom:16px; border-radius:6px; color:#fff; font-weight:bold; text-align:center;">
-          {% if category == 'success' %}
-            <div style="background:#28a745; border:1px solid #1e7e34;">✓ {{ message }}</div>
-          {% else %}
-            <div style="background:#dc3545; border:1px solid #c82333;">⚠ {{ message }}</div>
-          {% endif %}
+        .empty-state {
+            text-align: center; padding: 60px 20px; background: #fff;
+            border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .empty-state h2 { color: #2c3e50; margin-bottom: 12px; }
+        .empty-state p { color: #7f8c8d; margin-bottom: 24px; }
+        .empty-state .btn-home {
+            display: inline-block; padding: 12px 28px; background: #3498db;
+            color: #fff; text-decoration: none; border-radius: 50px; font-weight: bold;
+            transition: background 0.25s ease;
+        }
+        .empty-state .btn-home:hover { background: #2980b9; }
+
+        .checkout-section {
+            background: #fff; border-radius: 12px; padding: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-top: 30px;
+        }
+        .checkout-section h2 { color: #2c3e50; margin-top: 0; }
+        .checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-weight: 600; color: #2c3e50; font-size: 0.9rem; }
+        .form-group input {
+            padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 1rem; font-family: inherit;
+        }
+        .form-group input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+        .submit-row { grid-column: 1 / -1; text-align: right; margin-top: 10px; }
+        .submit-btn {
+            padding: 14px 36px; background: #27ae60; color: #fff; border: none;
+            border-radius: 50px; font-size: 1.05rem; font-weight: 700;
+            cursor: pointer; transition: all 0.25s ease; font-family: inherit;
+        }
+        .submit-btn:hover { background: #219150; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(39, 174, 96, 0.3); }
+
+        .cart-total {
+            background: #f8f9fa; padding: 16px 20px;
+            border-radius: 8px; border: 1px solid #eee; margin-bottom: 24px;
+        }
+        .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 6px; color: #555; }
+        .cart-total-row .price-note { font-style: italic; color: #7f8c8d; }
+
+        .clear-row { text-align: center; margin-top: 20px; }
+        .clear-btn {
+            background: transparent; color: #c0392b; border: 1px solid #e74c3c;
+            padding: 10px 24px; border-radius: 50px; cursor: pointer; font-family: inherit;
+            font-weight: 600; transition: all 0.2s ease;
+        }
+        .clear-btn:hover { background: #e74c3c; color: #fff; }
+
+        @media (max-width: 700px) {
+            .cart-item { grid-template-columns: 60px 1fr auto; }
+            .cart-item .cart-item-remove { display: none; }
+            .cart-item-image { width: 60px; height: 60px; }
+            .checkout-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'nav.html' %}
+
+    <main class="container">
+        <h1>Корзина и оформление заявки</h1>
+        <p class="subtitle">Проверьте выбранные позиции и оставьте контакты — менеджер свяжется для уточнения деталей.</p>
+
+        {% if cart and cart|length > 0 %}
+        <div class="cart-list">
+            {% for item in cart %}
+            <div class="cart-item">
+                <img src="{% if item.image %}{{ url_for('static', filename=item.image) }}{% else %}https://via.placeholder.com/120x120?text=Товар{% endif %}"
+                     alt="{{ item.name }}" class="cart-item-image"
+                     onerror="this.src='https://via.placeholder.com/120x120?text=Товар'">
+                <div class="cart-item-info">
+                    <h3>{{ item.name }}</h3>
+                    <span class="code">Арт.: {{ item.code or '-' }}</span>
+                </div>
+                <div class="cart-item-price">
+                    {% if item.price %}
+                    {{ item.price * item.quantity }} ₽
+                    {% else %}
+                    <span class="price-note">цена по запросу</span>
+                    {% endif %}
+                </div>
+                <form action="/snow_guard/remove-item" method="POST" onsubmit="return confirm('Удалить этот товар из корзины?');">
+                    <input type="hidden" name="index" value="{{ loop.index0 }}">
+                    <button type="submit" class="cart-item-remove">Удалить</button>
+                </form>
+            </div>
+            {% endfor %}
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
 
-  {% if cart and cart|length > 0 %}
-    <table style="width:100%; border-collapse:collapse; margin-top:16px;">
-      <thead>
-        <tr style="background:#f5f5f5;">
-          <th style="padding:12px; text-align:left; border:1px solid #ddd;">Товар</th>
-          <th style="padding:12px; text-align:right; border:1px solid #ddd;">Количество</th>
-          <th style="padding:12px; text-align:center; border:1px solid #ddd;">Действие</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in cart %}
-          <tr>
-            <td style="padding:12px; border:1px solid #ddd;">{{ item.name }}</td>
-            <td style="padding:12px; text-align:right; border:1px solid #ddd;">{{ item.quantity }} шт.</td>
-            <td style="padding:12px; text-align:center; border:1px solid #ddd;">
-              <!-- Кнопка УДАЛИТЬ ОДИН ТОВАР -->
-              <form action="/snow_guard/remove-item" method="POST" style="display:inline;">
-                <input type="hidden" name="index" value="{{ loop.index0 }}">
-                <button type="submit"
-                        style="padding:6px 12px; background:#dc3545; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.9rem;">
-                  Удалить
-                </button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        <div class="checkout-section">
+            <div class="cart-total">
+                <div class="cart-total-row"><span>Позиций в заявке:</span><span>{{ cart|length }}</span></div>
+                <div class="cart-total-row"><span class="price-note">Точную стоимость менеджер назовёт по телефону — цены зависят от цвета покрытия и объёма заказа.</span></div>
+            </div>
 
-    <p style="margin:20px 0; font-style:italic; color:#555;">
-      Цена уточняется по телефону.
-    </p>
+            <form action="/snow_guard/cart" method="POST" class="checkout-grid">
+                <div class="form-group">
+                    <label for="email">E-mail для связи</label>
+                    <input type="email" id="email" name="email" placeholder="name@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+                <div class="submit-row">
+                    <button type="submit" class="submit-btn">Оформить заявку</button>
+                </div>
+            </form>
+        </div>
 
-    <!-- Форма заявки -->
-    <form method="POST">
-      <div style="max-width:500px; margin:20px auto; display:flex; flex-direction:column; gap:12px;">
-        <label style="font-weight:bold;">E-mail:</label>
-        <input type="email" name="email" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
-
-        <label style="font-weight:bold;">Телефон:</label>
-        <input type="tel" name="phone" required style="padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="+7...">
-
-        <button type="submit" style="padding:12px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:1.1rem;">Отправить заявку (мы перезвоним)</button>
-      </div>
-    </form>
-
-    <!-- Кнопка ОЧИСТИТЬ КОРЗИНУ (всё сразу) -->
-    <div style="text-align:center; margin-top:30px;">
-      <form action="/snow_guard/clear-cart" method="POST" style="display:inline;">
-        <button type="submit"
-                style="padding:10px 24px; background:#6c757d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
-          Очистить корзину
-        </button>
-      </form>
-    </div>
-  {% else %}
-    <p style="text-align:center; margin-top:40px; color:#666;">Корзина пуста. Добавьте товары к заказу.</p>
-    <p style="text-align:center;">
-      <a href="/snow_guard" style="color:#007bff;">Снегозадержатели</a> | 
-      <a href="/fence" style="color:#007bff;">Ограждения</a>
-    </p>
-  {% endif %}
-{% endblock %}
+        <div class="clear-row">
+            <form action="/snow_guard/clear-cart" method="POST" onsubmit="return confirm('Очистить всю корзину?');">
+                <button type="submit" class="clear-btn">Очистить корзину</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>Корзина пуста</h2>
+            <p>Добавьте товары из каталога, чтобы сформировать заявку.</p>
+            <a href="/" class="btn-home">Вернуться на главную</a>
+        </div>
+        {% endif %}
+    </main>
+</body>
+</html>

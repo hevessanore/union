@@ -83,6 +83,7 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.5);
         }
+        .add-to-cart-btn:disabled { opacity: 0.6; cursor: wait; }
 
         .cart-link-row { text-align: center; margin-top: 25px; }
         .cart-link { color: #3498db; text-decoration: underline; font-weight: 600; font-size: 1rem; }
@@ -109,7 +110,7 @@
             </div>
         </div>
 
-        <form action="/snow_guard/add-to-cart" method="POST" class="form-section">
+        <form action="/snow_guard/add-to-cart" method="POST" class="form-section js-cart-form">
             <input type="hidden" name="code" value="{{ code }}">
             <div class="quantity-row">
                 <label for="quantity">Кол-во шт.:</label>
