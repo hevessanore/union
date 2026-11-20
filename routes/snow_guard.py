@@ -20,20 +20,47 @@ SNOW_GUARD_CATALOG = {
     "sg-001": {
         "title": "Трубчатый снегозадержатель 3 м",
         "image": "img/sg_001.png",
-        "price": 2800,
-        "description": "Стальная труба Ø25 мм, длина 3 м, комплект крепежа на 4 опоры, оцинкованная сталь."
+        "description": "Стальная труба Ø25 мм, длина 3 м, комплект крепежа на 4 опоры, оцинкованная сталь.",
+        "variants": {
+            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
+            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
+        },
+        "colors": [
+            {"name": "Коричневый", "hex": "#6b4a2f"},
+            {"name": "Графит",     "hex": "#3b3b3b"},
+            {"name": "Красный",    "hex": "#8e2f2f"},
+            {"name": "Зелёный",    "hex": "#2e6b3f"}
+        ]
     },
     "sg-002": {
         "title": "Пластинчатый снегозадержатель (уголок) 1 м",
         "image": "img/sg_002.png",
-        "price": 950,
-        "description": "Оцинкованная сталь 2 мм, длина 1 м, универсальный крепёж под металлочерепицу и профлист."
+        "description": "Оцинкованная сталь 2 мм, длина 1 м, универсальный крепёж под металлочерепицу и профлист.",
+        "variants": {
+            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
+            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
+        },
+        "colors": [
+            {"name": "Коричневый", "hex": "#6b4a2f"},
+            {"name": "Графит",     "hex": "#3b3b3b"},
+            {"name": "Красный",    "hex": "#8e2f2f"},
+            {"name": "Зелёный",    "hex": "#2e6b3f"}
+        ]
     },
     "sg-003": {
         "title": "Решётчатый снегозадержатель 2 м",
         "image": "img/sg_003.png",
-        "price": 3600,
-        "description": "Усиленная решётка 2 м, оцинкованная сталь, комплект крепежа, подходит для крутых скатов."
+        "description": "Усиленная решётка 2 м, оцинкованная сталь, комплект крепежа, подходит для крутых скатов.",
+        "variants": {
+            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
+            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
+        },
+        "colors": [
+            {"name": "Коричневый", "hex": "#6b4a2f"},
+            {"name": "Графит",     "hex": "#3b3b3b"},
+            {"name": "Красный",    "hex": "#8e2f2f"},
+            {"name": "Зелёный",    "hex": "#2e6b3f"}
+        ]
     }
 }
 
@@ -51,7 +78,11 @@ def detail(code):
     item = SNOW_GUARD_CATALOG.get(code)
     if not item:
         return redirect(url_for('snow_guard.catalog'))
-    return render_template('snow_guard_passport.html', code=code, item=item)
+    # Дефолтные тип и цвет — первый вариант из карточки, чтобы в корзину уехал выбор
+    first_variant = next(iter(item.get('variants', {}).values()), {}).get('label', '')
+    first_color = item['colors'][0]['name'] if item.get('colors') else ''
+    return render_template('snow_guard_passport.html', code=code, item=item,
+                           first_variant=first_variant, first_color=first_color)
 
 
 # --- Добавить в корзину ---
@@ -71,9 +102,11 @@ def add_to_cart():
     name = item.get('title') or request.form.get('name', 'Товар без названия')
     image = item.get('image') or normalize_image(request.form.get('image', ''))
     price = item.get('price') or request.form.get('price') or None
+    variant = request.form.get('variant', '')
+    color = request.form.get('color', '')
 
     # Отладка: видно в терминале, что пришло из формы
-    print(f"DEBUG add-to-cart: name={name!r}, image={image!r}, price={price!r}, code={code!r}")
+    print(f"DEBUG add-to-cart: name={name!r}, image={image!r}, price={price!r}, code={code!r}, variant={variant!r}, color={color!r}")
 
     if 'cart' not in session:
         session['cart'] = []
@@ -82,6 +115,8 @@ def add_to_cart():
         "code": code if item else None,
         "name": name,
         "image": image,
+        "variant": variant,
+        "color": color,
         "price": price,
         "quantity": quantity
     })
@@ -151,11 +186,17 @@ def cart():
             '>>> НОВАЯ ЗАЯВКА (скопируй и перезвони):'
         ]
         for item in cart_items:
+            opts = []
+            if item.get('variant'):
+                opts.append(f"тип: {item['variant']}")
+            if item.get('color'):
+                opts.append(f"цвет: {item['color']}")
+            opt_info = f", {', '.join(opts)}" if opts else ''
             if item.get('price'):
                 price_info = f', цена: {item["price"]} руб.'
             else:
                 price_info = ', цена по запросу'
-            lines.append(f'Товар: {item["name"]} (арт. {item.get("code") or "-"}), кол-во: {item["quantity"]} шт.{price_info}')
+            lines.append(f'Товар: {item["name"]} (арт. {item.get("code") or "-"}), кол-во: {item["quantity"]} шт.{opt_info}{price_info}')
 
         lines.append(f'Клиент: {phone}')
         lines.append(f'E-mail: {email}')
