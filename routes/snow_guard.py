@@ -1,19 +1,48 @@
-
 # routes/snow_guard.py
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from routes.orders import send_email  # <-- Импорт функции отправки почты (я добавила это за тебя)
+from routes.orders import send_email
 
 snow_guard_bp = Blueprint('snow_guard', __name__)
 
-@snow_guard_bp.route('')  # итоговый путь: /snow_guard
-def index():
-    page_data = {"title": "Снегозадержатели"}
-    return render_template('snow_guard.html', data=page_data)
+# --- ДАННЫЕ КАТАЛОГА (только снегозадержатели) ---
+SNOW_GUARD_CATALOG = {
+    "sg-001": {
+        "title": "Трубчатый снегозадержатель 3 м",
+        "image": "img/sg_001.png",
+        "price": 2800,
+        "description": "Стальная труба Ø25 мм, длина 3 м, комплект крепежа на 4 опоры, оцинкованная сталь."
+    },
+    "sg-002": {
+        "title": "Пластинчатый снегозадержатель (уголок) 1 м",
+        "image": "img/sg_002.png",
+        "price": 950,
+        "description": "Оцинкованная сталь 2 мм, длина 1 м, универсальный крепёж под металлочерепицу и профлист."
+    },
+    "sg-003": {
+        "title": "Решётчатый снегозадержатель 2 м",
+        "image": "img/sg_003.png",
+        "price": 3600,
+        "description": "Усиленная решётка 2 м, оцинкованная сталь, комплект крепежа, подходит для крутых скатов."
+    }
+}
 
-@snow_guard_bp.route('/add-to-cart', methods=['POST'])  # итоговый путь: /snow_guard/add-to-cart
+# --- Каталог снегозадержателей ---
+@snow_guard_bp.route('')
+@snow_guard_bp.route('/catalog')
+def catalog():
+    return render_template('snow_guard_catalog.html', items=SNOW_GUARD_CATALOG)
+
+# --- Паспорт конкретного снегозадержателя ---
+@snow_guard_bp.route('/<code>')
+def detail(code):
+    item = SNOW_GUARD_CATALOG.get(code)
+    if not item:
+        return redirect(url_for('snow_guard.catalog'))
+    return render_template('snow_guard_passport.html', code=code, item=item)
+
+# --- Добавить в корзину ---
+@snow_guard_bp.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
-    print("✅ МАРШРУТ add-to-cart СРАБОТАЛ! Получили данные.")
-    
     quantity_str = request.form.get('quantity', '1')
     try:
         quantity = int(quantity_str)
@@ -22,24 +51,28 @@ def add_to_cart():
     except ValueError:
         quantity = 1
 
-    product_name = request.form.get('name', 'Товар без названия')
+    code = request.form.get('code', '')
+    item = SNOW_GUARD_CATALOG.get(code, {})
+    name = item.get('title', 'Снегозадержатель')
 
     if 'cart' not in session:
         session['cart'] = []
 
     session['cart'].append({
-        "name": product_name,
+        "code": code,
+        "name": name,
         "quantity": quantity
     })
     session.modified = True
 
-    flash(f'«{product_name}» добавлен в корзину. Менеджер перезвонит для уточнения деталей.', 'success')
-    
+    flash(f'«{name}» добавлен в корзину. Менеджер перезвонит для уточнения деталей.', 'success')
+
     referrer = request.referrer
     if referrer:
         return redirect(referrer)
-    return redirect(url_for('snow_guard.index'))
+    return redirect(url_for('snow_guard.catalog'))
 
+# --- Удалить один товар из корзины ---
 @snow_guard_bp.route('/remove-item', methods=['POST'])
 def remove_item():
     index_str = request.form.get('index')
@@ -60,6 +93,7 @@ def remove_item():
 
     return redirect('/snow_guard/cart')
 
+# --- Очистить корзину ---
 @snow_guard_bp.route('/clear-cart', methods=['POST'])
 def clear_cart():
     session['cart'] = []
@@ -67,7 +101,8 @@ def clear_cart():
     flash('Корзина очищена.', 'success')
     return redirect('/snow_guard/cart')
 
-@snow_guard_bp.route('/cart', methods=['GET', 'POST'])  # итоговый путь: /snow_guard/cart
+# --- Корзина и оформление заявки ---
+@snow_guard_bp.route('/cart', methods=['GET', 'POST'])
 def cart():
     cart_items = session.get('cart', [])
 
@@ -78,35 +113,30 @@ def cart():
         if not email or not phone or len(cart_items) == 0:
             flash('Заполните e-mail, телефон и добавьте товар в корзину', 'error')
             return redirect(url_for('snow_guard.cart'))
-        
-        # --- Собираем красивый текст заявки ---
+
         lines = [
             '=' * 50,
             '>>> НОВАЯ ЗАЯВКА (скопируй и перезвони):'
         ]
         for item in cart_items:
-            lines.append(f'Товар: {item["name"]}, кол-во: {item["quantity"]} шт.')
+            lines.append(f'Товар: {item["name"]} (арт. {item.get("code", "-")}), кол-во: {item["quantity"]} шт.')
         lines.append(f'Клиент: {phone}')
         lines.append(f'E-mail: {email}')
         lines.append('=' * 50)
-        
-        message_text = "\n".join(lines)
-        # ---------------------------------------
 
-        # 1. Печатаем в терминал (как было раньше - для быстрой проверки)
+        message_text = "\n".join(lines)
+
         print("\n" + message_text + "\n")
 
-        # 2. Отправляем на почту (теперь заявка не пропадёт!)
         try:
             send_email(message_text)
             print("📩 Письмо успешно отправлено на почту.")
         except Exception as e:
             print(f"❌ Ошибка отправки письма: {e}")
-            # Даже если почта не ушла, заявка уже есть в терминале и (если добавишь файл) в файле.
 
         session['cart'] = []
         session.modified = True
         flash('Заявка оформлена! Мы свяжемся с вами в ближайшее время.', 'success')
-        return redirect(url_for('snow_guard.index'))
+        return redirect(url_for('snow_guard.catalog'))
 
     return render_template('cart.html', cart=cart_items)
