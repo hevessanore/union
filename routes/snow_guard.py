@@ -7,6 +7,16 @@ from passport_helpers import build_variant_data
 snow_guard_bp = Blueprint('snow_guard', __name__)
 
 
+def normalize_image(image):
+    """Приводит путь к картинке к виду img/файл — файлы лежат в static/img/."""
+    if not image:
+        return ''
+    image = image.strip().lstrip('/')
+    if image.startswith('img/'):
+        return image
+    return 'img/' + image
+
+
 # --- Каталог снегозадержателей ---
 @snow_guard_bp.route('')
 @snow_guard_bp.route('/catalog')
@@ -41,11 +51,12 @@ def add_to_cart():
     code = request.form.get('code', '')
     item = SNOW_GUARD_CATALOG.get(code, {})
     name = item.get('title') or request.form.get('name', 'Товар без названия')
+    image = item.get('image') or normalize_image(request.form.get('image', ''))
     price = item.get('price') or request.form.get('price') or None
     variant = request.form.get('variant', '')
     color = request.form.get('color', '')
 
-    print(f"DEBUG add-to-cart: name={name!r}, price={price!r}, code={code!r}, variant={variant!r}, color={color!r}")
+    print(f"DEBUG add-to-cart: name={name!r}, image={image!r}, price={price!r}, code={code!r}, variant={variant!r}, color={color!r}")
 
     if 'cart' not in session:
         session['cart'] = []
@@ -53,6 +64,7 @@ def add_to_cart():
     session['cart'].append({
         "code": code if item else None,
         "name": name,
+        "image": image,
         "variant": variant,
         "color": color,
         "price": price,
@@ -84,7 +96,7 @@ def remove_item():
         if 'cart' in session and 0 <= index < len(session['cart']):
             removed = session['cart'].pop(index)
             session.modified = True
-            flash(f'Товар "{removed["name"]}" удалён из корзины.', 'success')
+            flash(f'Товар «{removed["name"]}» удалён из корзины.', 'success')
         else:
             flash('Товар не найден в корзине.', 'danger')
     except ValueError:
@@ -140,15 +152,23 @@ def cart():
 
         print("\n" + message_text + "\n")
 
+        email_sent = False
         try:
             send_email(message_text)
             print("📩 Письмо успешно отправлено на почту.")
+            email_sent = True
         except Exception as e:
             print(f"❌ Ошибка отправки письма: {e}")
 
         session['cart'] = []
         session.modified = True
-        flash('Заявка оформлена! Мы свяжемся с вами в ближайшее время.', 'success')
-        return redirect(url_for('snow_guard.catalog'))
+
+        if email_sent:
+            flash('Заявка отправлена! Письмо ушло менеджеру — ожидайте звонка в ближайшее время.', 'success')
+        else:
+            flash('Заявка принята, но письмо не ушло — позвоните нам, менеджер всё оформит.', 'danger')
+
+        # Остаёмся в корзине: она пустая, сверху плашка
+        return redirect(url_for('snow_guard.cart'))
 
     return render_template('cart.html', cart=cart_items)
