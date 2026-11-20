@@ -1,68 +1,10 @@
 # routes/snow_guard.py
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from routes.orders import send_email
+from catalog_data import SNOW_GUARD_CATALOG
+from passport_helpers import build_variant_data
 
 snow_guard_bp = Blueprint('snow_guard', __name__)
-
-
-def normalize_image(image):
-    """Приводит путь к картинке к виду img/файл — файлы лежат в static/img/."""
-    if not image:
-        return ''
-    image = image.strip().lstrip('/')
-    if image.startswith('img/'):
-        return image
-    return 'img/' + image
-
-
-# --- ДАННЫЕ КАТАЛОГА (только снегозадержатели) ---
-SNOW_GUARD_CATALOG = {
-    "sg-001": {
-        "title": "Трубчатый снегозадержатель 3 м",
-        "image": "img/sg_001.png",
-        "description": "Стальная труба Ø25 мм, длина 3 м, комплект крепежа на 4 опоры, оцинкованная сталь.",
-        "variants": {
-            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
-            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
-        },
-        "colors": [
-            {"name": "Шоколадный RAL-8017", "hex": "#66472d"},
-            {"name": "Вишня RAL-3005",     "hex": "#834646"},
-            {"name": "Синий RAL-5005",    "hex": "#2A77CF"},
-            {"name": "Зелёный мох RAL-6005",    "hex": "#366844"}
-        ]
-    },
-    "sg-002": {
-        "title": "Пластинчатый снегозадержатель (уголок) 1 м",
-        "image": "img/sg_002.png",
-        "description": "Оцинкованная сталь 2 мм, длина 1 м, универсальный крепёж под металлочерепицу и профлист.",
-        "variants": {
-            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
-            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
-        },
-        "colors": [
-            {"name": "Шоколадный RAL-8017", "hex": "#66472d"},
-            {"name": "Вишня RAL-3005",     "hex": "#834646"},
-            {"name": "Синий RAL-5005",    "hex": "#2A77CF"},
-            {"name": "Зелёный мох RAL-6005",    "hex": "#366844"}
-        ]
-    },
-    "sg-003": {
-        "title": "Решётчатый снегозадержатель 2 м",
-        "image": "img/sg_003.png",
-        "description": "Усиленная решётка 2 м, оцинкованная сталь, комплект крепежа, подходит для крутых скатов.",
-        "variants": {
-            "standard": {"label": "Стандарт", "note": "полимерное покрытие, толщина 0,5 мм"},
-            "premium":  {"label": "Премиум",  "note": "усиленное покрытие, толщина 0,7 мм"}
-        },
-        "colors": [
-            {"name": "Шоколадный RAL-8017", "hex": "#66472d"},
-            {"name": "Вишня RAL-3005",     "hex": "#834646"},
-            {"name": "Синий RAL-5005",    "hex": "#2A77CF"},
-            {"name": "Зелёный мох RAL-6005",    "hex": "#366844"}
-        ]
-    }
-}
 
 
 # --- Каталог снегозадержателей ---
@@ -78,11 +20,11 @@ def detail(code):
     item = SNOW_GUARD_CATALOG.get(code)
     if not item:
         return redirect(url_for('snow_guard.catalog'))
-    # Дефолтные тип и цвет — первый вариант из карточки, чтобы в корзину уехал выбор
-    first_variant = next(iter(item.get('variants', {}).values()), {}).get('label', '')
-    first_color = item['colors'][0]['name'] if item.get('colors') else ''
-    return render_template('snow_guard_passport.html', code=code, item=item,
-                           first_variant=first_variant, first_color=first_color)
+    variants = item.get('variants', {})
+    first_key = next(iter(variants), '')
+    return render_template('passport.html', code=code, item=item,
+                           first_key=first_key, prefix='snow_guard',
+                           variant_data=build_variant_data(item))
 
 
 # --- Добавить в корзину ---
@@ -96,17 +38,14 @@ def add_to_cart():
     except ValueError:
         quantity = 1
 
-    # Приоритет: артикул из каталога, иначе название/картинка/цена из формы
     code = request.form.get('code', '')
     item = SNOW_GUARD_CATALOG.get(code, {})
     name = item.get('title') or request.form.get('name', 'Товар без названия')
-    image = item.get('image') or normalize_image(request.form.get('image', ''))
     price = item.get('price') or request.form.get('price') or None
     variant = request.form.get('variant', '')
     color = request.form.get('color', '')
 
-    # Отладка: видно в терминале, что пришло из формы
-    print(f"DEBUG add-to-cart: name={name!r}, image={image!r}, price={price!r}, code={code!r}, variant={variant!r}, color={color!r}")
+    print(f"DEBUG add-to-cart: name={name!r}, price={price!r}, code={code!r}, variant={variant!r}, color={color!r}")
 
     if 'cart' not in session:
         session['cart'] = []
@@ -114,7 +53,6 @@ def add_to_cart():
     session['cart'].append({
         "code": code if item else None,
         "name": name,
-        "image": image,
         "variant": variant,
         "color": color,
         "price": price,
@@ -122,13 +60,9 @@ def add_to_cart():
     })
     session.modified = True
 
-    cart_count = len(session['cart'])
-
-    # AJAX-запрос: отвечаем JSON, страница не перезагружается
     if request.form.get('ajax') == '1' or request.headers.get('X-Requested-With') == 'fetch':
-        return jsonify(ok=True, name=name, cart_count=cart_count)
+        return jsonify(ok=True, name=name, cart_count=len(session['cart']))
 
-    # Обычный запрос: flash + возврат на ту же страницу
     flash(f'«{name}» добавлен в корзину. Менеджер перезвонит для уточнения деталей.', 'success')
 
     referrer = request.referrer
