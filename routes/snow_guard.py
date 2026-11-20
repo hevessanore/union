@@ -1,8 +1,19 @@
 # routes/snow_guard.py
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from routes.orders import send_email
 
 snow_guard_bp = Blueprint('snow_guard', __name__)
+
+
+def normalize_image(image):
+    """Приводит путь к картинке к виду img/файл — файлы лежат в static/img/."""
+    if not image:
+        return ''
+    image = image.strip().lstrip('/')
+    if image.startswith('img/'):
+        return image
+    return 'img/' + image
+
 
 # --- ДАННЫЕ КАТАЛОГА (только снегозадержатели) ---
 SNOW_GUARD_CATALOG = {
@@ -26,11 +37,13 @@ SNOW_GUARD_CATALOG = {
     }
 }
 
+
 # --- Каталог снегозадержателей ---
 @snow_guard_bp.route('')
 @snow_guard_bp.route('/catalog')
 def catalog():
     return render_template('snow_guard_catalog.html', items=SNOW_GUARD_CATALOG)
+
 
 # --- Паспорт конкретного снегозадержателя ---
 @snow_guard_bp.route('/<code>')
@@ -39,6 +52,7 @@ def detail(code):
     if not item:
         return redirect(url_for('snow_guard.catalog'))
     return render_template('snow_guard_passport.html', code=code, item=item)
+
 
 # --- Добавить в корзину ---
 @snow_guard_bp.route('/add-to-cart', methods=['POST'])
@@ -51,26 +65,42 @@ def add_to_cart():
     except ValueError:
         quantity = 1
 
+    # Приоритет: артикул из каталога, иначе название/картинка/цена из формы
     code = request.form.get('code', '')
     item = SNOW_GUARD_CATALOG.get(code, {})
-    name = item.get('title', 'Снегозадержатель')
+    name = item.get('title') or request.form.get('name', 'Товар без названия')
+    image = item.get('image') or normalize_image(request.form.get('image', ''))
+    price = item.get('price') or request.form.get('price') or None
+
+    # Отладка: видно в терминале, что пришло из формы
+    print(f"DEBUG add-to-cart: name={name!r}, image={image!r}, price={price!r}, code={code!r}")
 
     if 'cart' not in session:
         session['cart'] = []
 
     session['cart'].append({
-        "code": code,
+        "code": code if item else None,
         "name": name,
+        "image": image,
+        "price": price,
         "quantity": quantity
     })
     session.modified = True
 
+    cart_count = len(session['cart'])
+
+    # AJAX-запрос: отвечаем JSON, страница не перезагружается
+    if request.form.get('ajax') == '1' or request.headers.get('X-Requested-With') == 'fetch':
+        return jsonify(ok=True, name=name, cart_count=cart_count)
+
+    # Обычный запрос: flash + возврат на ту же страницу
     flash(f'«{name}» добавлен в корзину. Менеджер перезвонит для уточнения деталей.', 'success')
 
     referrer = request.referrer
     if referrer:
-        return redirect(referrer)
+        return redirect(referrer.split('#')[0])
     return redirect(url_for('snow_guard.catalog'))
+
 
 # --- Удалить один товар из корзины ---
 @snow_guard_bp.route('/remove-item', methods=['POST'])
@@ -93,6 +123,7 @@ def remove_item():
 
     return redirect('/snow_guard/cart')
 
+
 # --- Очистить корзину ---
 @snow_guard_bp.route('/clear-cart', methods=['POST'])
 def clear_cart():
@@ -100,6 +131,7 @@ def clear_cart():
     session.modified = True
     flash('Корзина очищена.', 'success')
     return redirect('/snow_guard/cart')
+
 
 # --- Корзина и оформление заявки ---
 @snow_guard_bp.route('/cart', methods=['GET', 'POST'])
@@ -119,7 +151,12 @@ def cart():
             '>>> НОВАЯ ЗАЯВКА (скопируй и перезвони):'
         ]
         for item in cart_items:
-            lines.append(f'Товар: {item["name"]} (арт. {item.get("code", "-")}), кол-во: {item["quantity"]} шт.')
+            if item.get('price'):
+                price_info = f', цена: {item["price"]} руб.'
+            else:
+                price_info = ', цена по запросу'
+            lines.append(f'Товар: {item["name"]} (арт. {item.get("code") or "-"}), кол-во: {item["quantity"]} шт.{price_info}')
+
         lines.append(f'Клиент: {phone}')
         lines.append(f'E-mail: {email}')
         lines.append('=' * 50)
