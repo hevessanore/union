@@ -11,6 +11,21 @@
         h1 { color: #2c3e50; margin-top: 0; margin-bottom: 8px; }
         .subtitle { color: #7f8c8d; margin-bottom: 30px; }
 
+        /* Плашки сообщений */
+        .flash {
+            max-width: 700px;
+            margin: 0 auto 24px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .flash-success { background: #e8f8f0; color: #1e7e4a; border: 1px solid #9adcb8; }
+        .flash-danger  { background: #fdecea; color: #b02a24; border: 1px solid #f5b5b0; }
+        .flash-error   { background: #fdecea; color: #b02a24; border: 1px solid #f5b5b0; }
+        .flash-warning { background: #fff7e0; color: #8a6d00; border: 1px solid #f0dd8a; }
+        .flash-info    { background: #eaf4fd; color: #24678f; border: 1px solid #a9cff0; }
+
         .cart-list { display: flex; flex-direction: column; gap: 16px; }
         .cart-item {
             background: #fff; border-radius: 12px; padding: 16px;
@@ -28,6 +43,7 @@
         }
         .cart-item-info h3 { margin: 0 0 4px 0; color: #2c3e50; font-size: 1rem; }
         .cart-item-info .code { color: #95a5a6; font-size: 0.85rem; }
+        .cart-item-info .opts { color: #7f8c8d; font-size: 0.85rem; display: block; }
         .cart-item-price {
             text-align: right; color: #e74c3c; font-weight: 700; font-size: 1.1rem;
             white-space: nowrap;
@@ -104,6 +120,14 @@
         <h1>Корзина и оформление заявки</h1>
         <p class="subtitle">Проверьте выбранные позиции и оставьте контакты — менеджер свяжется для уточнения деталей.</p>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         {% if cart and cart|length > 0 %}
         <div class="cart-list">
             {% for item in cart %}
@@ -114,6 +138,13 @@
                 <div class="cart-item-info">
                     <h3>{{ item.name }}</h3>
                     <span class="code">Арт.: {{ item.code or '-' }}</span>
+                    {% if item.variant or item.color %}
+                    <span class="opts">
+                        {% if item.variant %}{{ item.variant }}{% endif %}
+                        {% if item.variant and item.color %}, {% endif %}
+                        {% if item.color %}{{ item.color }}{% endif %}
+                    </span>
+                    {% endif %}
                 </div>
                 <div class="cart-item-price">
                     {% if item.price %}
@@ -159,7 +190,7 @@
         {% else %}
         <div class="empty-state">
             <h2>Корзина пуста</h2>
-            <p>Добавьте товары из каталога, чтобы сформировать заявку.</p>
+            <p id="empty-text">Добавьте товары из каталога, чтобы сформировать заявку.</p>
             <a href="/" class="btn-home">Вернуться на главную</a>
         </div>
         {% endif %}
