@@ -83,7 +83,7 @@
     <main class="container">
         <h1>Снегозадержатели</h1>
 
-        <div class="catalog-grid">
+         <div class="catalog-grid">
             {% for code, item in items.items() %}
             <div class="product-card">
                 <div class="card-image-wrapper">
@@ -94,7 +94,11 @@
                 </div>
                 <div class="card-body">
                     <h3 class="card-title">{{ item['title'] }}</h3>
+                    {% if item['price'] %}
                     <p class="card-price">{{ item['price'] }} ₽</p>
+                    {% else %}
+                    <p class="card-price" style="color:#7f8c8d; font-style:italic;">Цена по запросу</p>
+                    {% endif %}
                     <a href="/snow_guard/{{ code }}" class="card-btn">Подробнее</a>
                 </div>
             </div>
