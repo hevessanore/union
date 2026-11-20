@@ -188,12 +188,48 @@
     </main>
 
     <script>
+        var imgEl = document.querySelector('.passport-image');
+        var baseName = imgEl ? imgEl.dataset.base : '';
+
+        // Заливка кружков цветом (цвет берём из data-атрибута)
+        document.querySelectorAll('.js-color').forEach(function (btn) {
+            btn.style.backgroundColor = btn.dataset.color;
+        });
+
+        // Картинка: тип + цвет → если файла нет, остаётся общая
+        function updateImage() {
+            if (!imgEl || !baseName) return;
+            var vBtn = document.querySelector('.js-variant.active');
+            var cBtn = document.querySelector('.js-color.active');
+            var vk = vBtn ? (vBtn.dataset.key || '') : '';
+            var cs = cBtn ? (cBtn.dataset.slug || '') : '';
+            if (vk && cs) {
+                tryExt(baseName + '_' + vk + '_' + cs);
+            } else {
+                imgEl.src = baseName + '.png';
+            }
+        }
+
+        // Пробуем .png, затем .jpg, затем откат на общую картинку
+        function tryExt(pathNoExt) {
+            var probe = new Image();
+            probe.onload = function () { imgEl.src = pathNoExt + '.png'; };
+            probe.onerror = function () {
+                var probeJpg = new Image();
+                probeJpg.onload = function () { imgEl.src = pathNoExt + '.jpg'; };
+                probeJpg.onerror = function () { imgEl.src = baseName + '.png'; };
+                probeJpg.src = pathNoExt + '.jpg';
+            };
+            probe.src = pathNoExt + '.png';
+        }
+
         // Переключение "Стандарт / Премиум"
         document.querySelectorAll('.js-variant').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.js-variant').forEach(function (b) { b.classList.remove('active'); });
                 btn.classList.add('active');
                 document.querySelector('.js-variant-input').value = btn.dataset.value;
+                updateImage();
             });
         });
 
@@ -205,8 +241,12 @@
                 document.querySelector('.js-color-input').value = btn.dataset.value;
                 var nameEl = document.querySelector('.js-color-name');
                 if (nameEl) nameEl.textContent = btn.dataset.value;
+                updateImage();
             });
         });
+
+        // Первичная загрузка: подставить картинку под дефолтный выбор (если есть)
+        updateImage();
     </script>
 </body>
 </html>
