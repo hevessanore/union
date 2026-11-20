@@ -8,13 +8,8 @@
     <title>{% block title %}ООО Юнион{% endblock %}</title>
 </head>
 <body>
-    {% block content %}
-  <a href="/" class="back-btn">
-    <span class="back-btn-icon">←</span>
-    <span class="back-btn-text">На главную</span>
-  </a>
+    {% include 'nav.html' %}
 
-  {{ block.super }}
-{% endblock %}
+    {% block content %}{% endblock %}
 </body>
 </html>
